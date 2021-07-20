@@ -1,0 +1,74 @@
+{
+    "routers": {
+        "R1": {
+            "zebra": "zebra.conf",
+            "quagga": "R1-quagga.conf",
+            "netifs": {
+                "R1-eth0": {
+                    "ipAddrs": [
+                        "150.1.1.1/30"
+                    ]
+                },
+                "R1-eth1": {
+                    "ipAddrs": [
+                        "10.0.0.1/8"
+                    ]
+                },
+                "R1-eth2": {
+                    "ipAddrs": [
+                        "150.1.2.1.30"
+                    ]
+                }
+            }
+        },
+        "R2": {
+            "zebra": "zebra.conf",
+            "quagga": "R2-quagga.conf",
+            "netifs": {
+                "R2-eth0": {
+                    "ipAddrs": [
+                        "150.1.3.1/30"
+                    ]
+                },
+                "R2-eth1": {
+                    "ipAddrs": [
+                        "150.1.2.2.30"
+                    ]
+                },
+                "R2-eth2": {
+                    "ipAddrs": [
+                        "192.168.1.3/30"
+                    ]
+                }
+            },
+            "bgp": {
+                "netifs": {
+                    "exabgp-eth0": {
+                        "ipAddrs": [
+                            "10.0.0.3/8"
+                        ]
+                    },
+                    "exabgp-eth1": {
+                        "ipAddrs": [
+                            "192.168.1.2/24"
+                        ]
+                    }
+                },
+                "link": {
+                    "router_port": 2,
+                    "exabgp_port": 1
+                }
+            }
+        }
+    },
+    "hosts": {
+        "H1": {
+            "ip": "10.0.0.100/8",
+            "defaultRoute": "10.0.0.1"
+        },
+        "H2": {
+            "ip": "40.0.0.100/8",
+            "defaultRoute": "40.0.0.1"
+        }
+    }
+}
