@@ -76,6 +76,39 @@ class QuaggaRouter(Host):
 
         Host.terminate(self)
 
+class MaliciousQuaggaRouter(Host):
+
+    def __init__(self, name, quaggaConfFile, zebraConfFile, intfDict, *args, **kwargs):
+        Host.__init__(self, name, *args, **kwargs)
+
+        self.quaggaConfFile = quaggaConfFile
+        self.zebraConfFile = zebraConfFile
+        self.intfDict = intfDict
+
+    def config(self, **kwargs):
+        Host.config(self, **kwargs)
+        self.cmd('sysctl net.ipv4.ip_forward=1')
+
+        for intf, attrs in self.intfDict.items():
+            self.cmd('ip addr flush dev %s' % intf)
+            if 'mac' in attrs:
+                self.cmd('ip link set %s down' % intf)
+                self.cmd('ip link set %s address %s' % (intf, attrs['mac']))
+                self.cmd('ip link set %s up ' % intf)
+            for addr in attrs['ipAddrs']:
+                self.cmd('ip addr add %s dev %s' % (addr, intf))
+
+        self.cmd(f'{ZEBRA_CMD} -d -f %s -z %s/zebra%s.api -i %s/zebra%s.pid' %
+                 (self.zebraConfFile, QUAGGA_RUN_DIR, self.name, QUAGGA_RUN_DIR, self.name))
+        self.cmd(f'{BGPD_CMD} -d -f %s -z %s/zebra%s.api -i %s/bgpd%s.pid' %
+                 (self.quaggaConfFile, QUAGGA_RUN_DIR, self.name, QUAGGA_RUN_DIR, self.name))
+
+    def terminate(self):
+        self.cmd("ps ax | egrep 'bgpd%s.pid|zebra%s.pid' | awk '{print $1}' | xargs kill" % (
+            self.name, self.name))
+
+        Host.terminate(self)
+
 
 class ExaBGPRouter(Host):
 
@@ -135,7 +168,7 @@ class Topo(Topo):
                     # Set up BGP monitors
                     name = f"{as_name}-exabgp"
                     exabgp = self.addHost(name, cls=ExaBGPRouter,
-                                          exaBGPconf='%sexabgp.conf' % CONFIG_DIR,
+                                          exaBGPconf='%sexabgp%s.conf' % (CONFIG_DIR, as_name),
                                           intfDict=as_dict["bgp"]["netifs"])
                     exabgps[name] = as_dict["bgp"]
 

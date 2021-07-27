@@ -5,6 +5,11 @@
           "ipAddrs": [
             "192.168.1.102/24"
           ]
+        },
+        "controller-eth1": {
+          "ipAddrs": [
+            "192.168.2.105/24"
+          ]
         }
       }
   },
@@ -29,9 +34,21 @@
       "port2": 0
     },
     {
+      "dev1": "R1",
+      "dev2": "R5",
+      "port1": 2,
+      "port2": 0
+    },
+    {
       "dev1": "controller",
       "dev2": "1-exabgp",
       "port1": 0,
+      "port2": 1
+    },
+    {
+      "dev1": "controller",
+      "dev2": "5-exabgp",
+      "port1": 1,
       "port2": 1
     }
   ],
@@ -51,6 +68,11 @@
             "R1-eth1": {
               "ipAddrs": [
                 "10.0.0.1/8"
+              ]
+            },
+            "R1-eth2": {
+              "ipAddrs": [
+                "150.5.1.1/16"
               ]
             }
           }
@@ -170,6 +192,50 @@
           "switch": 0,
           "ip": "40.0.0.100/8",
           "defaultRoute": "40.0.0.1"
+        }
+      }
+    },
+    "5": {
+      "malicious": "1",
+      "routers": {
+        "R5": {
+          "zebra": "zebra.conf",
+          "quagga": "R5-quagga.conf",
+          "switch": 1,
+          "netifs": {
+            "R5-eth0": {
+              "ipAddrs": [
+                "150.5.1.2/16"
+              ]
+            },
+            "R5-eth1": {
+              "ipAddrs": [
+                "50.0.0.1/8"
+              ]
+            }
+          }
+        }
+      },
+      "hosts": {
+        "H5": {
+          "switch": 0,
+          "ip": "50.0.0.100/8",
+          "defaultRoute": "50.0.0.1"
+        }
+      },
+      "bgp": {
+        "switch": 0,
+        "netifs": {
+          "5-exabgp-eth0": {
+            "ipAddrs": [
+              "50.0.0.3/24"
+            ]
+          },
+          "5-exabgp-eth1": {
+            "ipAddrs": [
+              "192.168.2.6/24"
+            ]
+          }
         }
       }
     }

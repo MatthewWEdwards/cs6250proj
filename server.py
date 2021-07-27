@@ -12,6 +12,7 @@ from netaddr import IPNetwork, IPAddress
 import os
 import sys
 import threading
+import time
 import select
 
 sio = socketio.Server(logger=False, async_mode=async_mode)
@@ -39,6 +40,21 @@ def version():
     sys.stdout.flush()
     return ""
 
+@app.route('/do')
+def do():
+    commands = [
+        "neighbor 50.0.0.1 announce route 40.0.0.0/24 next-hop self\n",
+        "announce route 40.0.0.0/24 next-hop self\n",
+        "neighbor 50.0.0.3 announce route 40.0.0.0/24 next-hop self\n",
+    ]
+    for c in commands:
+        sys.stdout.write(c)
+        sys.stdout.flush()
+        print(c)
+        sys.stdout.flush()
+    return ""
+
+
 @app.route('/read')
 def read():
     return exabgp_log
@@ -46,8 +62,11 @@ def read():
 @app.route('/command')
 def command():
     command = request.args.get('command').encode('utf-8')
-    os.write(sys.stdout.fileno(), command)
+    sys.stdout.write(command.decode('utf-8'))
     sys.stdout.flush()
+    print(command.decode('utf-8'))
+    sys.stdout.flush()
+    time.sleep(1)
     return ""
 
 if __name__ == '__main__':
