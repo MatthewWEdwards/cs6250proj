@@ -62,6 +62,8 @@ class QuaggaRouter(Host):
                 self.cmd('ip link set %s up ' % intf)
             for addr in attrs['ipAddrs']:
                 self.cmd('ip addr add %s dev %s' % (addr, intf))
+                self.cmd(f'iptables -t nat -A POSTROUTING -o {intf} -j MASQUERADE')
+                self.cmd(f'iptales -A FORWARD -i {intf} -j ACCEPT')
 
         self.cmd(f'{ZEBRA_CMD} -d -f %s -z %s/zebra%s.api -i %s/zebra%s.pid' %
                  (self.zebraConfFile, QUAGGA_RUN_DIR, self.name, QUAGGA_RUN_DIR, self.name))
