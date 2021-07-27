@@ -1,0 +1,37 @@
+{
+  "ASes": {
+    "1": {
+      "routers": {
+        "R1": {
+          "zebra": "zebra.conf",
+          "quagga": "R1-quagga.conf",
+          "switch": 1,
+          "netifs": {
+            "R1-eth0": {
+              "ipAddrs": [
+                "150.1.1.1/30"
+              ]
+            },
+            "R1-eth1": {
+              "ipAddrs": [
+                "10.0.0.1/8"
+              ]
+            },
+            "R1-eth2": {
+              "ipAddrs": [
+                "150.1.2.2/30"
+              ]
+            }
+          }
+        }
+      },
+      "hosts": {
+        "H1": {
+          "switch": 0,
+          "ip": "10.0.0.100/8",
+          "defaultRoute": "10.0.0.1"
+        }
+      }
+    }
+  }
+}
