@@ -122,40 +122,6 @@ class QuaggaRouter(Host):
 
         Host.terminate(self)
 
-class MaliciousQuaggaRouter(Host):
-
-    def __init__(self, name, quaggaConfFile, zebraConfFile, intfDict, *args, **kwargs):
-        Host.__init__(self, name, *args, **kwargs)
-
-        self.quaggaConfFile = quaggaConfFile
-        self.zebraConfFile = zebraConfFile
-        self.intfDict = intfDict
-
-    def config(self, **kwargs):
-        Host.config(self, **kwargs)
-        self.cmd('sysctl net.ipv4.ip_forward=1')
-
-        for intf, attrs in self.intfDict.items():
-            self.cmd('ip addr flush dev %s' % intf)
-            if 'mac' in attrs:
-                self.cmd('ip link set %s down' % intf)
-                self.cmd('ip link set %s address %s' % (intf, attrs['mac']))
-                self.cmd('ip link set %s up ' % intf)
-            for addr in attrs['ipAddrs']:
-                self.cmd('ip addr add %s dev %s' % (addr, intf))
-
-        self.cmd(f'{ZEBRA_CMD} -d -f %s -z %s/zebra%s.api -i %s/zebra%s.pid' %
-                 (self.zebraConfFile, QUAGGA_RUN_DIR, self.name, QUAGGA_RUN_DIR, self.name))
-        self.cmd(f'{BGPD_CMD} -d -f %s -z %s/zebra%s.api -i %s/bgpd%s.pid' %
-                 (self.quaggaConfFile, QUAGGA_RUN_DIR, self.name, QUAGGA_RUN_DIR, self.name))
-
-    def terminate(self):
-        self.cmd("ps ax | egrep 'bgpd%s.pid|zebra%s.pid' | awk '{print $1}' | xargs kill" % (
-            self.name, self.name))
-
-        Host.terminate(self)
-
-
 class ExaBGPRouter(Host):
 
     def __init__(self, name, exaBGPconf, intfDict, *args, **kwargs):
@@ -198,7 +164,7 @@ class Topo(Topo):
     def build(self):
         topopath = "./topos/as_topo.json"
         topo = json.loads(open(topopath, "r").read())
-        interfaces, quaggas, routers, hosts, exabgps = {}, {}, {}, {}, {}
+        interfaces, quaggas, routers, exabgps = {}, {}, {}, {}
         links = []
 
         # Create interfaces as quagga info for links
@@ -258,7 +224,7 @@ class Topo(Topo):
         for as_cnt, (as_name, as_dict) in enumerate(topo["ASes"].items()):
             router_ip = f"{'.'.join([*as_dict['prefix'].split('/')[0].split('.')[:3], '1']) + '/8'}"
 
-            # Add routers and BGP monitors
+            # Add router
             zebraConf = zebraFile(as_dict["as"])
             quaggaConf = quaggaFile(as_dict["as"], as_cnt, as_dict["prefix"], quaggas[as_name])
             ifaces = {
@@ -296,18 +262,9 @@ class Topo(Topo):
                                       intfDict=exabgp_interfaces)
                 exabgps[name] = exabgp_interfaces
 
-            # Add hosts
-            # hosts = {}
-            # for host_name, host_attrs in as_dict["hosts"].items():
-            #     h = self.addHost(host_name, 
-            #             ip=host_attrs["ip"], 
-            #             defaultRoute=f"via {host_attrs['defaultRoute']}")
-            #     hosts[host_name] = host_attrs
-
         # Add switch
         linkcnt = 1
         l2switch = self.addSwitch(f"{as_name}-l2switch", failMode="standalone", dpid="0000000000000001", cls=L2Switch)
-        #for devtype in [routers, exabgps, hosts]:
         for devtype in [routers, exabgps]:
             for name, ifs in devtype.items():
                 self.addLink(l2switch, name, port1=linkcnt, port2=len(ifs) - 1)
