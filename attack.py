@@ -1,2 +1,2 @@
 import requests
-requests.get("http://192.168.2.2:5000/do")
+requests.get("http://127.0.0.1:5000/attack")

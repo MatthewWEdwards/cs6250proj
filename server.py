@@ -34,25 +34,15 @@ global read_thread
 read_thread = threading.Thread(target=read_exabgp)
 read_thread.start()
 
-@app.route('/version')
-def version():
-    os.write(sys.stdout.fileno(), b'announce route 100.10.0.0/24 next-hop self')
-    sys.stdout.flush()
-    return ""
-
-@app.route('/do')
-def do():
+@app.route('/attack')
+def attack():
     commands = [
         "neighbor 50.0.0.1 announce route 40.0.0.0/24 next-hop self\n",
-        "announce route 40.0.0.0/24 next-hop self\n",
-        "neighbor 50.0.0.3 announce route 40.0.0.0/24 next-hop self\n",
     ]
     for c in commands:
         sys.stdout.write(c)
         sys.stdout.flush()
-        print(c)
-        sys.stdout.flush()
-    return ""
+    return "Attack started\n"
 
 
 @app.route('/read')
@@ -64,10 +54,7 @@ def command():
     command = request.args.get('command').encode('utf-8')
     sys.stdout.write(command.decode('utf-8'))
     sys.stdout.flush()
-    print(command.decode('utf-8'))
-    sys.stdout.flush()
-    time.sleep(1)
-    return ""
+    return "Success\n"
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', threaded=True)
