@@ -22,13 +22,19 @@ app.config['SECRET_KEY'] = 'secret!'
 thread = None
 clients = {}
 
-global exabgp_log 
+global exabgp_log, bracket_cnt
 exabgp_log = "empty"
+bracket_cnt = 0
 def read_exabgp():
     global exabgp_log
+    global bracket_cnt
     exabgp_log = ""
     for lin in sys.stdin:
         exabgp_log += lin.rstrip()
+        bracket_cnt += lin.count("{")
+        bracket_cnt -= lin.count("}")
+        if bracket_cnt == 0:
+            exabgp_log += ","
 
 global read_thread
 read_thread = threading.Thread(target=read_exabgp)
@@ -43,7 +49,7 @@ def attack():
 
 @app.route('/read')
 def read():
-    return exabgp_log
+    return "{ \"updates\": [" + exabgp_log[:-1] + "] }"
 
 @app.route('/command')
 def command():
