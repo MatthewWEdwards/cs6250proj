@@ -1,24 +1,30 @@
 #!/usr/bin/python3
 
+import json
 import os
 import requests
 
-import socketio
-from flask import Flask
+monitored_ases = {
+    65001: "http://192.168.1.2:5000",
+    65004: "http://192.168.2.2:5000"
+}
 
+def read(as_name):
+    if as_name not in monitored_ases.keys():
+        raise ValueError
+    resp = requests.get(monitored_ases["as_name"])
+    return json.loads(resp.content)
 
-sio = socketio.Server(logger=False, async_mode="threading")
-app = Flask(__name__)
-app.wsgi_app = socketio.Middleware(sio, app.wsgi_app)
-app.config['SECRET_KEY'] = 'secret!'
+def deleteRoute(as_num, deleted_as):
+    requests.get(f"{monitored_ases[as_num]}/down", params={
+        "local_as": as_num,
+        "deleted_as": deleted_as
+    })
 
-@app.route('/read')
-def read():
-    h1 = requests.get(url="http://192.168.1.2:5000/read")
-    return h1.content
+def detectMalicious():
+    return [(65001, 65005)]
 
-@app.route('/alive')
-def alive():
-    return "Hello World!\n"
-
-app.run(host='0.0.0.0', threaded=True)
+if __name__ == "__main__":
+    delete_routes = detectMalicious()
+    for route in delete_routes:
+        deleteRoute(*route)

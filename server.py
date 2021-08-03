@@ -36,14 +36,10 @@ read_thread.start()
 
 @app.route('/attack')
 def attack():
-    commands = [
-        "neighbor 50.0.0.1 announce route 40.0.0.0/24 next-hop self\n",
-    ]
-    for c in commands:
-        sys.stdout.write(c)
-        sys.stdout.flush()
+    command = "neighbor 50.0.0.1 announce route 40.0.0.0/24 next-hop self\n"
+    sys.stdout.write(command)
+    sys.stdout.flush()
     return "Attack started\n"
-
 
 @app.route('/read')
 def read():
@@ -51,10 +47,21 @@ def read():
 
 @app.route('/command')
 def command():
-    command = request.args.get('command').encode('utf-8')
-    sys.stdout.write(command.decode('utf-8'))
+    command = request.args.get('command') + "\n"
+    sys.stdout.write(command)
     sys.stdout.flush()
     return "Success\n"
+
+@app.route('/down')
+def down():
+    local_as = request.args.get('local_as')
+    remote_as = request.args.get('remote_as')
+    if local_as == "65001" and remote_as == "65005":
+        sys.stdout.write("neighbor 10.0.0.1 withdraw route 40.0.0.0/24 next-hop 50.0.0.1\n")
+        sys.stdout.flush()
+        return "Success\n"
+    else:
+        return "Fail\n"
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', threaded=True)
